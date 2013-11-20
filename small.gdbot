@@ -4,7 +4,7 @@
 # Any leading whitespaces, at the beginning of the lines, are ignored. Thereafter:
 # 	Any line starting with % is a interpretation parameter for the whole .gdbot file
 # 	Any line starting with : is a rule line
-#   Any other line is ellegal
+# 	Any other line is ellegal
 
 % filename = "small gdbot sample file" # A reference name to put in the header of the log
 % filetype = gdbot # Probably superfluous and selfevident
