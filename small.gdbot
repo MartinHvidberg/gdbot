@@ -2,7 +2,7 @@
 
 # Any blank lines are ignored
 # Any leading whitespaces, at the beginning of the lines, are ignored. Thereafter:
-# 	Any line starting with % is a interpretation parameter for the whole .gdbot file
+# 	Any line starting with % is an interpretation parameter for the whole .gdbot file
 # 	Any line starting with : is a rule line
 # 	Any other line is ellegal
 
@@ -18,7 +18,7 @@
 # Next line shows a rule line structure
 # : ruleID : ruleTitle : FC : FCsubtype : FieldName : ErrorCondition : OtherCondition : ActionType : Action : Comments
 # Next lines are a sample rool line, with explanation
-# : 001 : Sample : DangerP : 1 : SomeField : not in (1,2,3) : SomeOtherField = 117 : FIX : = None : This is a sample line
+: 001 : Sample : /DangerP,DangerA) : 1 : SomeField : not in (1,2,3) : SomeOtherField = 117 : FIX : = None : This is a sample line
 # : 001 <- This is the rule number, it's integer.
 # : Sample <- This is the rule name, it's string. Optional
 # : DangerP <- The FC(s) affected by this rule. String or (string,string,...) or * for all FCs
@@ -53,7 +53,7 @@
 # The base elements can be combined, e.g. SQL(xxx) AND (RE(yyy) OR RE(zzz)) to be evaluated to an overall TRUE or FALSE
 # In the SQL()string, the cell value is represented by %
 # Example
-# NOT ( RE([0-9]) AND SQL(% BETWEEN 100 AND 500) )
+# RE([0-9]) AND SQL(% BETWEEN 100 AND 500)
 
 # Some examples on fixes
 # = 1 <- Set the value to 1
