@@ -1,0 +1,5 @@
+# ruleID : ruleTitle : FC : FCsubtype : FieldName : ErrorCondition : OtherCondition : ActionType : Action : Comments
+
+: 1 : something with MAPID : CulturalFeaturesL : * : MAPID : = '3' : : LOG :  :
+: 2 : something with MAPID : CulturalFeaturesL : * : MAPID : = '4' : : FIX : "5" :
+

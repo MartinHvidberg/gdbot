@@ -1,0 +1,14 @@
+# ruleID : ruleTitle : FC : FCsubtype : FieldName : ErrorCondition : OtherCondition : ActionType : Action : Comments
+
+:  1 : single fc w single fcsub   : CoastlineL : 1 : MAPID : IS NOT NULL : : LOG : :
+:  2 : single fc w multiple fcsub : CulturalFeaturesL : 1,45 : MAPID : IS NOT NULL : : LOG : :
+:  3 : multiple fc                : CoastlineL,NaturalFeaturesP : * : MAPID : IS NOT NULL : : LOG : :
+:  4 : single fc w fcsub *        : NaturalFeaturesP : * : MAPID : IS NOT NULL : : LOG : :
+:  5 : fc * w fcsub *             : * : * : MAPID : IS NOT NULL : : LOG : :
+:  6 : fc * w spec. fcsub warning : * : 5 : MAPID : IS NOT NULL : : LOG : :
+:  7 : othercond                  : CoastlineL : 1 : MAPID : IS NOT NULL : PLTS_COMP_SCALE=90000 : LOG : :
+:  8 : <>                         : CoastlineL : 1 : MAPID : IS NOT NULL : PLTS_COMP_SCALE<>90000 : LOG : :
+:  9 : !=                         : CoastlineL : 1 : MAPID : IS NOT NULL : PLTS_COMP_SCALE!=90000 : LOG : :
+: 10 : !=                         : CoastlineL : 1 : PLTS_COMP_SCALE : !=90000 :  : LOG : :
+: 11 : fix                        : CoastlineL : 1 : MAPID : IS NOT NULL :  : FIX : NULL :
+: 12 : blank fix                  : CoastlineL : 1 : PLTS_COMP_SCALE : !=90000 :  : FIX : :
