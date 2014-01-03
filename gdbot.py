@@ -1,3 +1,14 @@
+"""
+    GBOT - a Geodatabase (ro)bot
+    The purpose of this project is to keep a geo data base clean and tidy
+    The script act based on a number of rules, the rules are stores in a .gbot file
+    
+    Author : Martin Hvidberg <mahvi@gst.dk>
+    Author : Hanne L. Petersen <halpe@gst.dk>
+    
+    
+"""
+
 import arcpy
 #import os
 from string import upper, replace
