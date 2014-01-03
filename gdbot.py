@@ -5,7 +5,14 @@
     
     Author : Martin Hvidberg <mahvi@gst.dk>
     Author : Hanne L. Petersen <halpe@gst.dk>
+
+    To do:
     
+        Look for XXX in the code 
+        
+        Allow the rule reader to understand S-57 codes, e.g. PortsAndServicesP FCsubtype 15 is actually called CRANES
+            : 3 : Cranes can no longer be CATCRN = 1. Change to unknown : PortsAndServicesP : 15 : CATCRN = 1 : : FIX : -32767 :
+            : 3 : Cranes can no longer be CATCRN = 1. Change to unknown : PortsAndServicesP : CRANES : CATCRN = 1 : : FIX : -32767 :
     
 """
 
@@ -69,16 +76,21 @@ class Rule:
             log("Warning, rule {}: no = or IS operator in error condition: {} ?".format(str(self.id), errval[0:2]))
         self.othercond = replace(othercond, "!=", "<>")
         self.dofix = (fixorlog=="FIX")
-        # This is ugly: we're stripping quote marks off fix value, even though it's a string.
-        # They're required in the test value, but not allowed in the fix value,
-        # so we'll allow the user to enter them in both places, and remove them here.
-        if(fixvalue and fixvalue[0] == fixvalue[-1] and (fixvalue[0]=="'" or fixvalue[0]=='"')):
-            fixvalue = fixvalue[1:-1]
-        self.fixvalue = fixvalue
-        # TODO: recognise a fixvalue which is another column name
+        #=======================================================================
+        # # This is ugly: we're stripping quote marks off fix value, even though it's a string.
+        # # They're required in the test value, but not allowed in the fix value,
+        # # so we'll allow the user to enter them in both places, and remove them here.
+        # if(fixvalue and fixvalue[0] == fixvalue[-1] and (fixvalue[0]=="'" or fixvalue[0]=='"')):
+        #     fixvalue = fixvalue[1:-1]
+        # self.fixvalue = fixvalue
+        self.fixvalue = fixvalue.strip("\"\'") # This is shorter
+        #=======================================================================
+        
+        # TODO: recognize a fixvalue which is another column name
         if(self.dofix and not self.fixvalue):
-            self.dofix = 0
+            self.dofix = 0 # <- Should this be False? XXX
             log("Warning, rule {}: ignoring FIX with no repair value.".format(str(self.id)))
+             # This is an Error (not a Warning). The rule should not be added to the rule set... XXX
         if(self.fixvalue and not self.dofix):
             log("Warning, rule {}: FIX is not set, but repair value is non-empty.".format(str(self.id)))
     def GetWhereString(self):
@@ -104,8 +116,10 @@ class Rule:
 
 def ConvertToList(string, delimiter=","):
     """Convert a string to a list"""
-    if(not delimiter in string):
-        return [string]
+    #=========================================================================== This is not necessary, .split() will handle that just fin 
+    # if(not delimiter in string):
+    #     return [string]
+    #===========================================================================
     return string.split(delimiter)
 
 def ConnectToDB(db):
@@ -137,6 +151,7 @@ def ReadRules(path):
     lst_rules = list()
     f = open(path, 'r')
     for line in f:
+        line = line.strip() # Stripping lead and trailing whitespaces
         if(not line.strip() or line[0]=="#"):
             continue
         if(line[0]=="%"):
@@ -146,8 +161,12 @@ def ReadRules(path):
             log("Warning: ignoring invalid line starting with "+line[0])
             continue
         if("#" in line):
-            log("Warning: not handling mid-line #'s") # TODO
-        items = line.split(":")
+            #log("Warning: not handling mid-line #'s") # TODO
+            line = line.split("#")[0].strip()
+        items = line.split(":") 
+        if len(items)!=11:
+           log("Warning: Line do not contain the correct number of elements... \n\t"+line.strip()+"\n\t"+repr(items))
+        # forget about number 0, since its always an empty string (nothing in front of the first ':'
         ruleid = items[1].strip()
         title = items[2].strip()
         featureclass = items[3].strip()
@@ -204,7 +223,9 @@ def RunGdbTests():
     
     print "Starting read tests..."
     lst_rules = ReadRules(readrules)
-    print lst_rules
+    #print lst_rules
+    for rule in lst_rules:
+        print " Rule: "+rule.__repr__().strip()
     print "Finished read tests."
     
     lst_rules = []

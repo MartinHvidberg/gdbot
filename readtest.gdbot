@@ -12,3 +12,4 @@
 : 10 : !=                         : CoastlineL : 1 : PLTS_COMP_SCALE : !=90000 :  : LOG : :
 : 11 : fix                        : CoastlineL : 1 : MAPID : IS NOT NULL :  : FIX : NULL :
 : 12 : blank fix                  : CoastlineL : 1 : PLTS_COMP_SCALE : !=90000 :  : FIX : :
+: 13 : End of line comment(s)     : CoastlineL : 1 : MAPID : IS NOT NULL : : LOG : : This is a Comment # This is another Comment ...
