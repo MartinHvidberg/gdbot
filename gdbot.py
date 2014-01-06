@@ -19,6 +19,7 @@
 import arcpy
 #import os
 from string import upper, replace
+from datetime import datetime # for datetime.now()
 
 lst_log = [] # Collector list for things to log ...
 logfilename = ""
@@ -59,23 +60,41 @@ def writeLogToFile(filename):
 
 class Rule:
     def __init__(self, theid, title, fc, fcsubtype, mainfield, errval, othercond, fixorlog, fixvalue):
+        # The ID
         self.id = theid
+        # Title
         self.title = title
+        # FC
         if(fc=="*"):
             self.fclist = lstNISlayers
             if(fcsubtype != "*"):
                 log("Warning, rule {}: Feature class is *, but feature class subtype is {}.".format(self.id, fcsubtype))
         else:
             self.fclist = ConvertToList(fc)
-        self.fcsubtype = fcsubtype
-        if(not self.fcsubtype):
+        # FCsubtype
+        if fcsubtype.strip() == "*":
             self.fcsubtype = "*"
+        else:
+            if isinstance(fcsubtype.strip(),int):
+                self.fcsubtype = int(fcsubtype)
+            else: # If its not an integer, it may be an S-57 '6-letter-code' 
+                fcs_value = S57codeToFCSubtype(fcsubtype)
+                if fcs_value > 0:
+                    self.fcsubtype = fcs_value
+                else:
+                    log("Warning, rule {}: Can't interpret fcsubtype : {}.".format(self.id, fcsubtype))
+                    self.fcsubtype = -999
+        # Main field
         self.field = mainfield
+        # Error value
         self.errval = replace(errval, "!=", "<>")
         if(self.errval[0] != "=" and upper(self.errval[0:2]) != "IS" and self.errval[0:2] != "<>"):
             log("Warning, rule {}: no = or IS operator in error condition: {} ?".format(str(self.id), errval[0:2]))
+        # Other condition
         self.othercond = replace(othercond, "!=", "<>")
+        # Fix or Log
         self.dofix = (fixorlog=="FIX")
+        # Fix value
         #=======================================================================
         # # This is ugly: we're stripping quote marks off fix value, even though it's a string.
         # # They're required in the test value, but not allowed in the fix value,
@@ -84,8 +103,7 @@ class Rule:
         #     fixvalue = fixvalue[1:-1]
         # self.fixvalue = fixvalue
         self.fixvalue = fixvalue.strip("\"\'") # This is shorter
-        #=======================================================================
-        
+        #=======================================================================        
         # TODO: recognize a fixvalue which is another column name
         if(self.dofix and not self.fixvalue):
             self.dofix = 0 # <- Should this be False? XXX
@@ -219,7 +237,7 @@ def RunGdbTests():
     logfilename = "test.log"
     readrules  = "./readtest.gdbot"
     checkrules = "./ruletest.gdbot"
-    log("")
+    log("*** Start GDBtest. "+str(datetime.now())+" ***")
     
     print "Starting read tests..."
     lst_rules = ReadRules(readrules)
