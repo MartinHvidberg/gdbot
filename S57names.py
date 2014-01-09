@@ -402,14 +402,16 @@ def ListofFCs(lstKeywords):
             lstR = ListAdd(lstR,i[0])
     return lstR
     
-def ListofFCSs():
-    lstR = []
-    for i in lstFCFCS:
-        lstFCS = [i[0],i[1]]
-        if not lstFCS in lstR:
-            lstR.append(lstFCS)
-    #lstR.sort() # cant handle text and number combination, ant they were in the right order from the start...
-    return lstR
+#=============================================================================== See more advanced version above
+# def ListofFCSs():
+#     lstR = []
+#     for i in lstFCFCS:
+#         lstFCS = [i[0],i[1]]
+#         if not lstFCS in lstR:
+#             lstR.append(lstFCS)
+#     #lstR.sort() # cant handle text and number combination, ant they were in the right order from the start...
+#     return lstR
+#===============================================================================
 
 def ListofFCSsInFC(FC,lstKeywords):
     lstR = []
@@ -454,13 +456,23 @@ def S57ABB2FCS(S57ABB):
     
 def Run_internal_tests():
     # CleanFCSstring()
-    print CleanFCSstring("117") == "117"
-    print CleanFCSstring("117x") == "-1"
+    print str(CleanFCSstring(" 117 ") == "117") + " : " + CleanFCSstring("117")
+    print str(CleanFCSstring(" 117x") == "-1") + " : " + CleanFCSstring("117x")
     # FCexists(strFC)
-    print FCexists("AidsToNavigationP") == True
-    print FCexists("AidsToNavigationPxxx") == False
-    print ListofFCs("")
-    
+    print str(FCexists("AidsToNavigationP") == True) + " : " + str(FCexists("AidsToNavigationP"))
+    print str(FCexists("AidsToNavigationPxxx") == False)  + " : " + str(FCexists("AidsToNavigationPxxx"))
+    # ListofFCs()
+    print str(ListofFCs("") == ['AidsToNavigationP', 'CoastlineA', 'CoastlineL', 'CoastlineP', 'CulturalFeaturesA', 'CulturalFeaturesL', 'CulturalFeaturesP', 'DangersA', 'DangersL', 'DangersP', 'DepthsA', 'DepthsL', 'IceFeaturesA', 'IceFeaturesL', 'IceFeaturesP', 'MetaDataA', 'MetaDataL', 'MetaDataP', 'MilitaryFeaturesA', 'MilitaryFeaturesL', 'MilitaryFeaturesP', 'NaturalFeaturesA', 'NaturalFeaturesL', 'NaturalFeaturesP', 'OffshoreInstallationsA', 'OffshoreInstallationsL', 'OffshoreInstallationsP', 'PLTS_COLLECTIONS', 'PortsAndServicesA', 'PortsAndServicesL', 'PortsAndServicesP', 'RegulatedAreasAndLimitsA', 'RegulatedAreasAndLimitsL', 'RegulatedAreasAndLimitsP', 'SeabedA', 'SeabedL', 'SeabedP', 'SoundingsP', 'TidesAndVariationsA', 'TidesAndVariationsL', 'TidesAndVariationsP', 'TracksAndRoutesA', 'TracksAndRoutesL', 'TracksAndRoutesP', 'UserDefinedFeaturesA', 'UserDefinedFeaturesL', 'UserDefinedFeaturesP']) + " : " + str(ListofFCs(""))
+    print str(ListofFCs(["IceFeatures"]) == ['IceFeaturesA', 'IceFeaturesL', 'IceFeaturesP']) + " : " + str(ListofFCs(["IceFeatures"]))
+    # ListofFCSsInFC(FC,lstKeywords)
+    print str(ListofFCSsInFC("DangersP",[]) == [['DangersP', '1', 'CTNARE', 'Caution Area'], ['DangersP', '5', 'divloc', 'Diving Location'], ['DangersP', '10', 'FSHFAC', 'Fishing Facility'], ['DangersP', '15', 'histob', 'Contact History'], ['DangersP', '20', 'OBSTRN', 'Obstruction'], ['DangersP', '25', 'senanm', 'Sensor Anomaly'], ['DangersP', '30', 'smalbo', 'Small Bottom Objects'], ['DangersP', '35', 'UWTROC', 'Underwater Awash Rock'], ['DangersP', '40', 'WATTUR', 'Water Turbulence'], ['DangersP', '45', 'WRECKS', 'Wrecks']]) + " : " + str(ListofFCSsInFC("DangersP",[]))
+    print str(ListofFCSsInFC("DangersP",["4"]) == []) + " : " + str(ListofFCSsInFC("DangersP",["4"]))
+    print str(ListofFCSsInFC("DangersP",["35"]) == [['DangersP', '35', 'UWTROC', 'Underwater Awash Rock']]) + " : " + str(ListofFCSsInFC("DangersP",["35"]))
+    print str(ListofFCSsInFC("DangersP",["1","35","45"]) == [['DangersP', '1', 'CTNARE', 'Caution Area'], ['DangersP', '35', 'UWTROC', 'Underwater Awash Rock'], ['DangersP', '45', 'WRECKS', 'Wrecks']]) + " : " + str(ListofFCSsInFC("DangersP",["1","35","45"]))
+     
+#  + " : " + str()
+
+
 if __name__ == "__main__":
     print " *** Running internal test ***"
     Run_internal_tests()

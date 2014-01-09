@@ -16,10 +16,11 @@
     
 """
 
-import arcpy
+###import arcpy
 #import os
 from string import upper, replace
 from datetime import datetime # for datetime.now()
+import S57names
 
 lst_log = [] # Collector list for things to log ...
 logfilename = ""
@@ -78,7 +79,7 @@ class Rule:
             if isinstance(fcsubtype.strip(),int):
                 self.fcsubtype = int(fcsubtype)
             else: # If its not an integer, it may be an S-57 '6-letter-code' 
-                fcs_value = S57codeToFCSubtype(fcsubtype)
+                fcs_value = S57names.S57codeToFCSubtype(fcsubtype)
                 if fcs_value > 0:
                     self.fcsubtype = fcs_value
                 else:
