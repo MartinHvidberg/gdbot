@@ -141,7 +141,6 @@ def ConvertToList(string, delimiter=","):
     return string.split(delimiter)
 
 def ConnectToDB(db):
-    # TODO
     arcpy.env.workspace = db
     desDB = arcpy.Describe(db)
     if desDB.workspaceFactoryProgID == "esriDataSourcesGDB.SdeWorkspaceFactory.1":
@@ -173,7 +172,7 @@ def ReadRules(path):
         if(not line.strip() or line[0]=="#"):
             continue
         if(line[0]=="%"):
-            log("ignoring % lines")
+            log("ignoring % lines, not implemented yet")
             continue
         if(line[0]!=":"):
             log("Warning: ignoring invalid line starting with "+line[0])
