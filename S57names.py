@@ -1,19 +1,28 @@
 
 """Operations used to convert between S-57 abbreviations and -names, vs. Esri NIS FeatureClass, FCsubtype numbers"""
 
-# Ver. 1.0.1
-# Last edited 2014-01-06 / MaHvi
+# Ver. 1.0.2
+# Last edited 2014-01-14 / MaHvi
 
 # History
 # Ver. 1.0.0 - First working version
 # Ver. 1.0.1
-#   Cleaned up the variable naming fra FSC to FCS
+#   Cleaned up the variable naming from FSC to FCS
 #   Introduced a test module
+# Ver. 1.0.2
+#    introduced functions:
+#        ListofFCsWithFCS(strFCS)
+#        GetFC(FCFCS)
+#        GetFCS(FCFCS):
+#        GetABB(FCFCS)
+#        GetName(FCFCS)
+#        _CheckForAmbiguousS57AABs()
+#        CorrectABBcasing(strABB)
+#    More test to go with new functions ...
 
 # *** XXX To Do: Consider adding list of use ["ECN","AML", etc.]
 
 
-        
 lstFCFCS = [
         ["AidsToNavigationP","1","BCNCAR","Beacon Cardinal"],
         ["AidsToNavigationP","5","BCNISD","Beacon Isolated Danger"],
@@ -143,7 +152,7 @@ lstFCFCS = [
         ["MilitaryFeaturesA","1","airres","Airspace Restriction"],
         ["MilitaryFeaturesA","5","btdare","Bottom Tactical Data Area"],
         ["MilitaryFeaturesA","10","lndstp","Landing Strip"],
-        ["MilitaryFeaturesA","15","ctlasp ","Controlled Airspace"],
+        ["MilitaryFeaturesA","15","ctlasp","Controlled Airspace"],
         ["MilitaryFeaturesA","20","drpzne","Drop Zone"],
         ["MilitaryFeaturesA","25","imgare","Area of Imagery Coverage"],
         ["MilitaryFeaturesA","30","lndste","Landing Site"],
@@ -160,7 +169,7 @@ lstFCFCS = [
         ["MilitaryFeaturesA","85","trfare","Trafficability Area"],
         ["MilitaryFeaturesL","1","atsctl","ATS Route Centerline"],
         ["MilitaryFeaturesL","5","bchext","Beach Exit"],
-        ["MilitaryFeaturesL","10","ctlasp ","Controlled Airspace"],
+        ["MilitaryFeaturesL","10","ctlasp","Controlled Airspace"],
         ["MilitaryFeaturesL","15","qroute","Q-Route Leg"],
         ["MilitaryFeaturesP","1","bchext","Beach Exit"],
         ["MilitaryFeaturesP","5","drpzne","Drop Zone"],
@@ -369,7 +378,7 @@ lstFCFCS = [
 
 def CleanFCSstring(strFCS):
     """ If string can be converted to int, 
-    then returns clean string with ounl the int.
+    then returns clean string with only the int.
     othervise returns '-1'."""
     try:
         return str(int(strFCS))
@@ -389,10 +398,8 @@ def ListofFCs(lstKeywords):
     If arguments given, must be list of strings, 
     then only return layers where one or more of 
     these strings can be found in Feature Cass name.
-    Returns list of FCs"""
-    
-    lstR = []
-    
+    Returns list of FCs"""    
+    lstR = []    
     def ListAdd(lstN,strN):
         if not strN in lstN:
             lstN.append(strN)
@@ -406,45 +413,75 @@ def ListofFCs(lstKeywords):
         else:
             lstR = ListAdd(lstR,candidate[0])
     return lstR
-    
-#=============================================================================== See more advanced version above
-# def ListofFCSs():
-#     lstR = []
-#     for candidate in lstFCFCS:
-#         lstFCS = [candidate[0],candidate[1]]
-#         if not lstFCS in lstR:
-#             lstR.append(lstFCS)
-#     #lstR.sort() # cant handle text and number combination, ant they were in the right order from the start...
-#     return lstR
-#===============================================================================
 
 def ListofFCSsInFC(FC,lstKeywords):
-    """Return a list of FCsubtypes, each itself a list e.g. ['DangersP', '35', 'UWTROC', 'Underwater Awash Rock']
-    FCsubtypes are in the returned list, only if one or more of the keywords are found the FCsubtype"""
+    """Return a list of FCFCS's, each itself a list e.g. ['DangersP', '35', 'UWTROC', 'Underwater Awash Rock']
+    FCFCS's are in the returned list, only if one or more of the keywords are found the FCFCS"""
     lstR = []
     for candidate in lstFCFCS:
         if candidate[0]==FC:
             if len(lstKeywords)>0:
                 for k in lstKeywords:
                     for position in [1,2,3]:
-                        if k == candidate[position]:
+                        if k == candidate[position]: # Enforcing strict casing
                             lstR.append(candidate)
+                        elif k.lower() == candidate[position].lower(): # allowing lose casing 
+                             lstR.append(candidate)
             else:
                 lstR.append(candidate)            
     return lstR
 
+def ListofFCsWithFCS(strFCS):
+    """ Return a list of FC names, showing all FC's that have the specified FCsubtype.
+    if strFCS is an interger is considered a FCsubtype number, otherwise an S-57 abbreviation.
+    Returns list of FC filenames"""
+    lstR = []
+    if CleanFCSstring(strFCS) == "-1": # it's a S57ABB
+        for candidate in lstFCFCS:
+            if GetABB(candidate).lower() == strFCS.lower():
+                lstR.append(GetFC(candidate))
+    else: # it's a FCS number
+        print "pass"
+    return lstR
+
 def GetFC(FCFCS):
+    """ Return the FC of the FCFCS """
     return FCFCS[0]
 
 def GetFCS(FCFCS):
+    """ Return the FCSubclass of the FCFCS """
     return FCFCS[1]
     
 def GetABB(FCFCS):
+    """ Return the S-57 abbreviation of the FCFCS """
     return FCFCS[2]
 
 def GetName(FCFCS):
+    """ Return the S-57 long-name of the FCFCS """
     return FCFCS[3]
 
+def _CheckForAmbiguousS57AABs():
+    lstR = list()
+    dicAmbiguous = dict()
+    for candidate in lstFCFCS:
+        abb = GetABB(candidate).lower()
+        if not abb in dicAmbiguous.keys():
+            dicAmbiguous[abb] = []
+        dicAmbiguous[abb].append(GetName(candidate))
+    for key in dicAmbiguous.keys():
+        if len(list(set(dicAmbiguous[key]))) != 1:
+            lstR.append((str(key),list(set(dicAmbiguous[key]))))
+    return lstR
+
+def CorrectABBcasing(strABB):
+    """ Takes a S-57 6-letter abbriviation, and return it with correct casing.
+    Returns list of 6-letter S-57 abbreviation, or [] if none found."""
+    lstR = []
+    for candidate in lstFCFCS:
+        if strABB.lower() == GetABB(candidate).lower():
+            lstR.append(GetABB(candidate))
+    return list(set(lstR))
+    
 def FCFCS2ABB(strFC,strFCS):
     """ Convert a FCsubtype number (presented as a string), to an S-57 abbreviation.
     return the Abbriviation string, or 'FC_FCS not found'."""
@@ -456,6 +493,8 @@ def FCFCS2ABB(strFC,strFCS):
     return "FC_FCS not found"
 
 def FCFCS2Name(strFC,strFCS):
+    """ Convert a FCsubtype number (presented as a string), to an S-57 Name string.
+    return the Name string, or 'FC_FCS not found'."""
     if CleanFCSstring(strFCS)!="-1":
         for candidate in lstFCFCS:
             if strFC == candidate[0]:
@@ -464,6 +503,8 @@ def FCFCS2Name(strFC,strFCS):
     return "FC_FCS not found"
 
 def S57ABB2Name(S57ABB):
+    """ Convert a S-57 abbreviation, to an S-57 Name string.
+    return the Name string, or 'S57ABB not found'."""
     for candidate in lstFCFCS:
         if S57ABB == candidate[2]:
             return candidate[3]
@@ -499,21 +540,54 @@ def Run_internal_tests():
     test(ListofFCSsInFC("DangersP",["35"]), [['DangersP', '35', 'UWTROC', 'Underwater Awash Rock']])
     test(ListofFCSsInFC("DangersP",["1","35","45"]), [['DangersP', '1', 'CTNARE', 'Caution Area'], ['DangersP', '35', 'UWTROC', 'Underwater Awash Rock'], ['DangersP', '45', 'WRECKS', 'Wrecks']])
     test(ListofFCSsInFC("AidsToNavigationP",["BOYCAR"]), [['AidsToNavigationP', '25', 'BOYCAR', 'Buoy Cardinal']])
+    test(ListofFCSsInFC("AidsToNavigationP",["navaid"]), [['AidsToNavigationP', '80', 'navaid', 'Navigational Aid']]) # testing corectely specified lower case (as used with AML)
+    test(ListofFCSsInFC("AidsToNavigationP",["boycar"]), [['AidsToNavigationP', '25', 'BOYCAR', 'Buoy Cardinal']]) # testing 'wrong' caseing
     test(ListofFCSsInFC("AidsToNavigationP",["BOYCAR","TOPMAR","LIGHTS"]), [['AidsToNavigationP', '25', 'BOYCAR', 'Buoy Cardinal'], ['AidsToNavigationP', '65', 'LIGHTS', 'Light'], ['AidsToNavigationP', '110', 'TOPMAR', 'Topmark']])
-    #
+    # ListofFCsWithFCS(strFCS)
+    test(ListofFCsWithFCS("Failed"),[]) # No hits
+    test(ListofFCsWithFCS("LAKARE"),['NaturalFeaturesA']) # 1 hit
+    test(ListofFCsWithFCS("PIPSOL"),['OffshoreInstallationsL', 'OffshoreInstallationsP']) # 2 hits
+    test(ListofFCsWithFCS("MORFAC"),['PortsAndServicesA', 'PortsAndServicesL', 'PortsAndServicesP']) # 3 hits
+    test(ListofFCsWithFCS("LNDARE"),['MilitaryFeaturesA', 'NaturalFeaturesA', 'NaturalFeaturesL', 'NaturalFeaturesP']) # 3 hits - Notice 'weak' casing
+    test(ListofFCsWithFCS("lndare"),['MilitaryFeaturesA', 'NaturalFeaturesA', 'NaturalFeaturesL', 'NaturalFeaturesP']) # 3 hits - Notice 'weak' casing
+    # GetFC(), GetFCS(), GetABB() and GetName out of FCFCS listes.
     test(GetFC(['DangersP', '45', 'WRECKS', 'Wrecks']),"DangersP")
     test(GetFCS(['DangersP', '45', 'WRECKS', 'Wrecks']),"45")
     test(GetABB(['DangersP', '45', 'WRECKS', 'Wrecks']),"WRECKS")
     test(GetName(['DangersP', '45', 'WRECKS', 'Wrecks']),"Wrecks")
+    # _CheckForAmbiguousS57AABs()
+    test(_CheckForAmbiguousS57AABs(),[('lndare', ['Landing Area', 'Land Area'])])
+    # CorrectABBcasing(strABB)
+    test(CorrectABBcasing('MORFAC'), ['MORFAC'])
+    test(CorrectABBcasing('morfac'), ['MORFAC'])
+    test(CorrectABBcasing('MoRfAc'), ['MORFAC'])
+    test(CorrectABBcasing("lsrare"), ['lsrare'])
+    test(CorrectABBcasing("LSRARE"), ['lsrare'])
+    test(CorrectABBcasing("LsRaRe"), ['lsrare'])
+    test(CorrectABBcasing('LNDARE'), ['LNDARE', 'lndare'])
+    test(CorrectABBcasing('lndare'), ['LNDARE', 'lndare'])
+    test(CorrectABBcasing('LnDaRe'), ['LNDARE', 'lndare'])
+    test(CorrectABBcasing('Rubbish'), [])
     # FCFCS2ABB(strFC,strFCS)
     test(FCFCS2ABB("PortsAndServicesA","70"),"MORFAC")
     test(FCFCS2ABB("PortsAndServicesA","07"),"FC_FCS not found")
-#  + " : " + str()
+    # FCFCS2Name(strFC,strFCS)
+    test(FCFCS2Name("PortsAndServicesA","70"),"Mooring Warping Facility")
+    test(FCFCS2Name("PortsAndServicesA","07"),"FC_FCS not found")
+    # S57ABB2Name(S57ABB)
+    test(S57ABB2Name("MORFAC"),"Mooring Warping Facility")
+    test(S57ABB2Name("navaid"),"Navigational Aid") # testing corectely specified lower case (as used with AML)
+    test(S57ABB2Name("morfac"),"S57ABB not found") # testing 'wrong' caseing
+    test(S57ABB2Name("rubbish"),"S57ABB not found")
+    # S57ABB2FCS(S57ABB)
+    test(S57ABB2FCS("MORFAC"),[['PortsAndServicesA', '70', 'MORFAC', 'Mooring Warping Facility'], ['PortsAndServicesL', '30', 'MORFAC', 'Mooring Warping Facility'], ['PortsAndServicesP', '45', 'MORFAC', 'Mooring Warping Facility']])
+    test(S57ABB2FCS("navaid"),[['AidsToNavigationP', '80', 'navaid', 'Navigational Aid']]) # testing corectely specified lower case (as used with AML)
+    test(S57ABB2FCS("morfac"),[]) # testing 'wrong' caseing. Use CorrectCasing('CaSiNg') to conrrect ill-cased S57ABB's.
+    test(S57ABB2FCS("rubbish"),[])    
 
 
 if __name__ == "__main__":
     print " *** Running internal test ***"
-    Run_internal_tests()
-                
+    Run_internal_tests() 
     
 # Music that accompanied the coding of this script:
