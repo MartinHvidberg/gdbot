@@ -79,7 +79,7 @@ class Rule:
             if isinstance(fcsubtype.strip(),int):
                 self.fcsubtype = int(fcsubtype)
             else: # If its not an integer, it may be an S-57 '6-letter-code' 
-                fcs_value = S57names.S57codeToFCSubtype(fcsubtype)
+                fcs_value = S57names.S57ABB2FCS(fcsubtype)
                 if fcs_value > 0:
                     self.fcsubtype = fcs_value
                 else:
