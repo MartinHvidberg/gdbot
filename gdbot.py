@@ -1,16 +1,18 @@
 """
-    GBOT - a Geodatabase (ro)bot
+    GDBOT - a Geodatabase (ro)bot
     The purpose of this project is to keep a geo data base clean and tidy
-    The script act based on a number of rules, the rules are stores in a .gbot file
+    The script acts based on a number of rules, the rules are stores in a .gdbot file
     
-    Author : Martin Hvidberg <mahvi@gst.dk>
-    Author : Hanne L. Petersen <halpe@gst.dk>
-
+    Author: Martin Hvidberg <mahvi@gst.dk>
+    Author: Hanne L. Petersen <halpe@gst.dk>
+    
+    Ver. 0.1
+    
     To do:
     
         Look for XXX in the code 
         
-        Allow the rule reader to understand S-57 codes, e.g. PortsAndServicesP FCsubtype 15 is actually called CRANES
+        Allow the rule reader to understand S-57 (6-letter) codes, e.g. PortsAndServicesP FCsubtype 15 is actually called CRANES
             : 3 : Cranes can no longer be CATCRN = 1. Change to unknown : PortsAndServicesP : 15 : CATCRN = 1 : : FIX : -32767 :
             : 3 : Cranes can no longer be CATCRN = 1. Change to unknown : PortsAndServicesP : CRANES : CATCRN = 1 : : FIX : -32767 :
     
@@ -71,23 +73,24 @@ class Rule:
             if(fcsubtype != "*"):
                 log("Warning, rule {}: Feature class is *, but feature class subtype is {}.".format(self.id, fcsubtype))
         else:
-            self.fclist = ConvertToList(fc)
+            self.fclist = fc.split(",") # split will return a list, even if there are no commas
         # FCsubtype
-        if fcsubtype.strip() == "*":
+        fcsubtype = fcsubtype.strip()
+        if fcsubtype == "*" or fcsubtype == "":
             self.fcsubtype = "*"
         else:
-            if isinstance(fcsubtype.strip(),int):
+            if isinstance(fcsubtype,int):
                 self.fcsubtype = int(fcsubtype)
-            else: # If its not an integer, it may be an S-57 '6-letter-code' 
+            else: # If it's not an integer, it may be an S-57 '6-letter-code'
                 fcs_value = S57names.S57ABB2FCS(fcsubtype)
                 if fcs_value > 0:
                     self.fcsubtype = fcs_value
                 else:
-                    log("Warning, rule {}: Can't interpret fcsubtype : {}.".format(self.id, fcsubtype))
+                    log("Warning, rule {}: Can't interpret fcsubtype: {}.".format(self.id, fcsubtype))
                     self.fcsubtype = -999
-        # Main field
+        # Main field to check
         self.field = mainfield
-        # Error value
+        # Error value for main field
         self.errval = replace(errval, "!=", "<>")
         if(self.errval[0] != "=" and upper(self.errval[0:2]) != "IS" and self.errval[0:2] != "<>"):
             log("Warning, rule {}: no = or IS operator in error condition: {} ?".format(str(self.id), errval[0:2]))
@@ -95,21 +98,26 @@ class Rule:
         self.othercond = replace(othercond, "!=", "<>")
         # Fix or Log
         self.dofix = (fixorlog=="FIX")
-        # Fix value
+        # Fix value (new value for main field)
+        # This is ugly: we're stripping quote marks off fixvalue, even though it's a string.
+        # They're required in the test value, but not allowed in the fix value,
+        # so we'll allow the user to enter them in both places, and remove them here.
         #=======================================================================
-        # # This is ugly: we're stripping quote marks off fix value, even though it's a string.
-        # # They're required in the test value, but not allowed in the fix value,
-        # # so we'll allow the user to enter them in both places, and remove them here.
-        # if(fixvalue and fixvalue[0] == fixvalue[-1] and (fixvalue[0]=="'" or fixvalue[0]=='"')):
-        #     fixvalue = fixvalue[1:-1]
-        # self.fixvalue = fixvalue
-        self.fixvalue = fixvalue.strip("\"\'") # This is shorter
+        if(fixvalue and fixvalue[0] == fixvalue[-1] and (fixvalue[0]=="'" or fixvalue[0]=='"')):
+            self.fixvalue = fixvalue[1:-1]
+        else:
+            self.fixvalue = fixvalue
+        #self.fixvalue = fixvalue.strip("\"\'") # This is shorter - but less accurate, and it's already iffy...
+        #if upper(self.fixvalue) == "UNKNOWN":
+        #    self.fixvalue = -32767 # is this a good idea? other values to accept?
+        #if upper(self.fixvalue) == "NONE":
+        #    self.fixvalue = NULL
         #=======================================================================        
         # TODO: recognize a fixvalue which is another column name
         if(self.dofix and not self.fixvalue):
-            self.dofix = 0 # <- Should this be False? XXX
-            log("Warning, rule {}: ignoring FIX with no repair value.".format(str(self.id)))
-             # This is an Error (not a Warning). The rule should not be added to the rule set... XXX
+            self.dofix = False
+            log("Warning, rule {}: FIX with no repair value; treating as LOG.".format(str(self.id)))
+             # if the user didn't supply a fix value, this is more helpful than throwing an error
         if(self.fixvalue and not self.dofix):
             log("Warning, rule {}: FIX is not set, but repair value is non-empty.".format(str(self.id)))
     def GetWhereString(self):
@@ -132,14 +140,6 @@ class Rule:
         str(self.id), str(self.title), str(self.fclist), str(self.fcsubtype),
             self.GetWhereString(), str(self.dofix), fixstring)
 # end class Rule
-
-def ConvertToList(string, delimiter=","):
-    """Convert a string to a list"""
-    #=========================================================================== This is not necessary, .split() will handle that just fin 
-    # if(not delimiter in string):
-    #     return [string]
-    #===========================================================================
-    return string.split(delimiter)
 
 def ConnectToDB(db):
     arcpy.env.workspace = db
@@ -169,22 +169,21 @@ def ReadRules(path):
     lst_rules = list()
     f = open(path, 'r')
     for line in f:
-        line = line.strip() # Stripping lead and trailing whitespaces
         if(not line.strip() or line[0]=="#"):
             continue
         if(line[0]=="%"):
             log("ignoring % lines, not implemented yet")
             continue
         if(line[0]!=":"):
-            log("Warning: ignoring invalid line starting with "+line[0])
+            log("Warning: ignoring invalid line starting with "+line[0]+" ("+line+")")
             continue
         if("#" in line):
-            #log("Warning: not handling mid-line #'s") # TODO
             line = line.split("#")[0].strip()
         items = line.split(":") 
         if len(items)!=11:
-           log("Warning: Line do not contain the correct number of elements... \n\t"+line.strip()+"\n\t"+repr(items))
-        # forget about number 0, since its always an empty string (nothing in front of the first ':'
+           log("Warning: Line does not contain the correct number of elements... \n\t"+line.strip()+"\n\t"+repr(items))
+        # forget about number 0, since it's always an empty string (nothing in front of the first ':')
+        # number 10 is just comments
         ruleid = items[1].strip()
         title = items[2].strip()
         featureclass = items[3].strip()
@@ -217,7 +216,7 @@ def CheckTables(dataset, rules):
                         row[2] = rule.fixvalue
                         uc.updateRow(row)
                         pass
-                log("Total {} update hits for rule {}".format(count, rule.id))
+                log("Total {} fix hits for rule {}".format(count, rule.id))
         else: # LOG
             #print "SELECT FROM " + str(rule.fclist) + " WHERE " + rule.GetWhereString()
             for fc in rule.fclist:
@@ -245,6 +244,7 @@ def RunGdbTests():
     for rule in lst_rules:
         print " Rule: "+rule.__repr__().strip()
     print "Finished read tests."
+    #return
     
     lst_rules = []
     
