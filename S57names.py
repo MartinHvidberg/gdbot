@@ -511,11 +511,19 @@ def S57ABB2Name(S57ABB):
     return "S57ABB not found"
 
 def S57ABB2FCS(S57ABB):
+    """ Return a list of lists of items with a given FCS. """
     lstR = []
     for candidate in lstFCFCS:
         if candidate[2]==S57ABB:
             lstR.append(candidate)
     return lstR
+
+def S57ABBFC2FCSNumber(S57ABB, strFC):
+    """ Return a FCS number (as string) for a given S57 abbr. and FC. """
+    for candidate in lstFCFCS:
+        if candidate[2]==S57ABB and candidate[0]==strFC:
+            return candidate[1]
+    return -1
     
 def Run_internal_tests():
     
@@ -584,6 +592,9 @@ def Run_internal_tests():
     test(S57ABB2FCS("navaid"),[['AidsToNavigationP', '80', 'navaid', 'Navigational Aid']]) # testing corectely specified lower case (as used with AML)
     test(S57ABB2FCS("morfac"),[]) # testing 'wrong' caseing. Use CorrectCasing('CaSiNg') to conrrect ill-cased S57ABB's.
     test(S57ABB2FCS("rubbish"),[])    
+    # S57ABBFC2FCSNumber(S57ABB, strFC)
+    test(S57ABBFC2FCSNumber("ROADWY", "CulturalFeaturesA"), "50")
+    test(S57ABBFC2FCSNumber("ROADWY", "CulturalFeaturesL"), "45")
 
 
 if __name__ == "__main__":
