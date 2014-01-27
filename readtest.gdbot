@@ -1,15 +1,19 @@
-# ruleID : ruleTitle : FC : FCsubtype : FieldName : ErrorCondition : OtherCondition : ActionType : Action : Comments
+# ruleID : ruleTitle : Mode : FC : FCsubtype : Condition : ActionType : Action : Comments
 
-:  1 : single fc w single fcsub   : CoastlineL : 1 : MAPID : IS NOT NULL : : LOG : :
-:  2 : single fc w multiple fcsub : CulturalFeaturesL : 1,45 : MAPID : IS NOT NULL : : LOG : :
-:  3 : multiple fc                : CoastlineL,NaturalFeaturesP : * : MAPID : IS NOT NULL : : LOG : :
-:  4 : single fc w fcsub *        : NaturalFeaturesP : * : MAPID : IS NOT NULL : : LOG : :
-:  5 : fc * w fcsub *             : * : * : MAPID : IS NOT NULL : : LOG : :
-:  6 : fc * w spec. fcsub warning : * : 5 : MAPID : IS NOT NULL : : LOG : :
-:  7 : othercond                  : CoastlineL : 1 : MAPID : IS NOT NULL : PLTS_COMP_SCALE=90000 : LOG : :
-:  8 : <>                         : CoastlineL : 1 : MAPID : IS NOT NULL : PLTS_COMP_SCALE<>90000 : LOG : :
-:  9 : !=                         : CoastlineL : 1 : MAPID : IS NOT NULL : PLTS_COMP_SCALE!=90000 : LOG : :
-: 10 : !=                         : CoastlineL : 1 : PLTS_COMP_SCALE : !=90000 :  : LOG : :
-: 11 : fix                        : CoastlineL : 1 : MAPID : IS NOT NULL :  : FIX : NULL :
-: 12 : blank fix                  : CoastlineL : 1 : PLTS_COMP_SCALE : !=90000 :  : FIX : :
-: 13 : End of line comment(s)     : CoastlineL : 1 : MAPID : IS NOT NULL : : LOG : : This is a Comment # This is another Comment ...
+:  1 : incorrect mode label     : WRONG : CoastlineL : 1 : MAPID IS NOT NULL : LOG : :
+:  2 : single fc w one fcsub      : SQL : CoastlineL : 1 : MAPID IS NOT NULL : LOG : :
+:  3 : single fc w several fcsubs : SQL : CulturalFeaturesL : 1, 45 : MAPID IS NOT NULL : LOG : :
+:  4 : multi-fc w multi-fcsubs    : SQL : CulturalFeaturesL, CulturalFeaturesA : BRIDGE : MAPID IS NOT NULL : LOG : :
+:  5 : single fc w 1 s-57 fcsub   : SQL : CoastlineL : COALNE : MAPID IS NOT NULL : LOG : :
+:  6 : single fc w s-57 fcsubs    : SQL : CulturalFeaturesL : BRIDGE, ROADWY : MAPID IS NOT NULL : LOG : :
+:  7 : multiple fc                : SQL : CoastlineL,NaturalFeaturesP : * : MAPID IS NOT NULL : LOG : :
+:  8 : single fc w fcsub *        : SQL : NaturalFeaturesP : * : MAPID IS NOT NULL : LOG : :
+:  9 : fc * w fcsub *             : SQL : * : * : MAPID IS NOT NULL : LOG : :
+: 10 : fc * w spec. fcsub warning : SQL : * : 5 : MAPID IS NOT NULL : LOG : :
+: 11 : multi cond.                : SQL : CoastlineL : 1 : MAPID IS NOT NULL AND PLTS_COMP_SCALE=90000 : LOG : :
+: 12 : <>                         : SQL : CoastlineL : 1 : PLTS_COMP_SCALE<>90000 : LOG : :
+: 14 : !=                         : SQL : CoastlineL : 1 : PLTS_COMP_SCALE !=90000 : LOG : :
+: 15 : fix                        : SQL : CoastlineL : 1 : MAPID IS NOT NULL : FIX : MAPID = 5 :
+: 16 : fix                        : SQL : CoastlineL : 1 : MAPID IS NOT NULL : FIX : MAPID = NULL, Verified = NULL :
+: 17 : blank fix                  : SQL : CoastlineL : 1 : PLTS_COMP_SCALE !=90000 : FIX : :
+: 18 : End of line comment(s)     : SQL : CoastlineL : 1 : MAPID IS NOT NULL : LOG : : This is a Comment # This is another Comment ...

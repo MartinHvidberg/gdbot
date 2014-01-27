@@ -1,6 +1,6 @@
-# ruleID : ruleTitle : FC : FCsubtype : FieldName : ErrorCondition : OtherCondition : ActionType : Action : Comments
+# ruleID : ruleTitle : Mode : FC : FCsubtype : Condition : ActionType : Action : Comments
 
-: 1 : something with MAPID : CulturalFeaturesL : * : MAPID : = '3' : : LOG :  :
-: 2 : something with MAPID : CulturalFeaturesL : * : MAPID : = 4 : : FIX : "5" :
-: 3 : Cranes can no longer be CATCRN = 1. Change to unknown : PortsAndServicesP : 15 : CATCRN : = 1 : : FIX : -32767 : This is a comment ...
-#: 1301 : This shoul'd have been <Null> : * : * : multibles... : IS NOT NULL : : LOG : :
+: 1 : something with MAPID : SQL : CulturalFeaturesL : * : MAPID = '4' : LOG :  :
+#: 2 : something with MAPID : SQL : CulturalFeaturesL : * : MAPID = '8' : FIX : SORIND = NULL, MAPID = 9 : This somehow doesn't work with double quotes!!!
+#: 4 : Cranes can no longer be CATCRN = 1. Change to unknown : SQL : PortsAndServicesP : 15 : CATCRN = 1 : FIX : -32767 : This is a comment ...
+#: 1301 : This should have been <Null> : SQL : * : * : several... IS NOT NULL : LOG : :

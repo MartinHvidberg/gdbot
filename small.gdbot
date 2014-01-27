@@ -1,61 +1,58 @@
 # This line is a Comment
 
 # Any blank lines are ignored
-# Any leading whitespaces, at the beginning of the lines, are ignored. Thereafter:
 # 	Any line starting with % is an interpretation parameter for the whole .gdbot file
 # 	Any line starting with : is a rule line
-# 	Any other line is ellegal
+# 	Any other line is illegal
 
 % filename = "small gdbot sample file" # A reference name to put in the header of the log
 % filetype = gdbot # Probably superfluous and selfevident
-% gdbot_syntax_version = 1.0 # In case the interpreter later needs to handle move flavours
+% gdbot_syntax_version = 1.1 # In case the interpreter later needs to handle more flavours
 
 % log_file = small.gdbotlog # filename, may include full or relative path.
-% send_log_file = true # Wheather to email the log file to someone
+% send_log_file = true # Whether to email the log file to someone
 % email_address = (mahvi@gst.dk, halpe@gst.dk) # Who to mail if I need human help
 
 
 # Next line shows a rule line structure
-# : ruleID : ruleTitle : FC : FCsubtype : FieldName : ErrorCondition : OtherCondition : ActionType : Action : Comments
-# Next lines are a sample rool line, with explanation
-: 001 : Sample : /DangerP,DangerA) : 1 : SomeField : not in (1,2,3) : SomeOtherField = 117 : FIX : = None : This is a sample line
+# : RuleID : RuleTitle : Mode : FC : FCsubtype : Condition : ActionType : Action : Comments
+# Next lines are a sample rule line, with explanation
+: 001 : Sample : SQL : DangersP,DangersA : 1 : SomeField NOT IN (1,2,3) AND SomeOtherField = 117 : FIX : SomeField = None, AnotherField = 5 : This is a sample line
 # : 001 <- This is the rule number, it's integer.
 # : Sample <- This is the rule name, it's string. Optional
-# : DangerP <- The FC(s) affected by this rule. String or (string,string,...) or * for all FCs
-# : 1 <- The FCsubtype affected.  Int. or (int,int,...) or * for all fields 
-# : SomeField <- The field(s) affected. String or (string,string,...) or * for all fields 
-# : not in (1,2,3) <- Condition describing an error state, to be elaborated ...
-# : SomeOtherField = 117 <- Condition describing state in other field(s) that also needs to be true, for this to be an error.
+# : SQL <- This is the rule interpretation mode. So far only SQL mode is available
+# : DangersP <- The FC(s) affected by this rule. String, or comma-separated string, or * for all FCs
+# : 1 <- The FCsubtype affected. * or comma-separated list of ints and s-57 codes
+# ### s-57 codes are only accepted if exactly one FC is specified
+# : SomeField NOT IN (1,2,3) AND SomeOtherField = 117 <- Condition describing an error state, in sql format ...
 # : FIX <- What type of action to take. (FIX|LOG). i.e. Fix it or Log it.
-# : = None <- What to do about it, e.g. Fix it by setting the field to None (i.e. <Null>)
-# : This is a sample line <- The rest of the line you can write a message to your self or others ...
+# : SomeField = None, AnotherField = 5 <- How to repair. Must be "field name = value" format, possibly several comma-separated pairs.
+# : This is a sample line <- The rest of the line you can write a message to yourself or others ...
 
-# Some condition examples
+# Some condition examples (SQL mode)
 # is Null
 # is not Null
 # = 0
-# != 0
 # <= 0
+# != 0
+# <> 0
 # > 117
-# integer and >= 100 and <= 500
-# non empty
-# only whitespacs
-# not integer
 # not in (1,2,3)
 # in (4,5,6)
 # not in ('red','green',blue')
-# not in ('red','green',blue'); case independent
+# not in ('red','green',blue'); case insensitive? <- not implemented yet
 
-# Alternative - Should we maybe just allow SQL- and some RE-based syntax here ?
-# The SqlRe-syntax consist of the following base elements (,),AND,OR,NOT,SQL(),RE()
+# Alternative - Should we maybe just allow SQL- and some REGEX-based syntax here ?
+# The SqlRegex-syntax consists of the following base elements (,),AND,OR,NOT,SQL(),REGEX()
 # (, ), AND, OR and NOT are traditional logical operators
-# SQL() and RE() are interpreters of SQL and RE expressions respectively, they return TRUE, FALSE or ERROR
-# The base elements can be combined, e.g. SQL(xxx) AND (RE(yyy) OR RE(zzz)) to be evaluated to an overall TRUE or FALSE
+# SQL() and REGEX() are interpreters of SQL and REGEX expressions respectively, they return TRUE, FALSE or ERROR
+# The base elements can be combined, e.g. SQL(xxx) AND (REGEX(yyy) OR REGEX(zzz)) to be evaluated to an overall TRUE or FALSE
 # In the SQL()string, the cell value is represented by %
 # Example
-# RE([0-9]) AND SQL(% BETWEEN 100 AND 500)
+# REGEX([0-9]) AND SQL(% BETWEEN 100 AND 500)
 
-# Some examples on fixes
-# = 1 <- Set the value to 1
-# = None <- Set to <Null>
-# = "SomeOtherField" <- set the value to whatever is in the field "SomeOtherField"
+# Some examples of fix values:
+# SomeField = NULL <- actual NULL/None
+# SomeField = None <- actual NULL/None
+# SomeField = [SomeOtherField] <- set the value to whatever is in the field SomeOtherField, NOT IMPLEMENTED YET
+# SomeField = 5* [SomeOtherField] <- set the value to 5 times whatever is in the field SomeOtherField, rhs must be valid python code, NOT IMPLEMENTED YET
