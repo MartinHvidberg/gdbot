@@ -5,13 +5,11 @@
 # 	Any line starting with : is a rule line
 # 	Any other line is illegal
 
-% filename = "small gdbot sample file" # A reference name to put in the header of the log
-% filetype = gdbot # Probably superfluous and selfevident
+% file_title = "small gdbot sample file" # A reference name to put in the header of the log
 % gdbot_syntax_version = 1.1 # In case the interpreter later needs to handle more flavours
 
 % log_file = small.gdbotlog # filename, may include full or relative path.
-% send_log_file = true # Whether to email the log file to someone
-% email_address = (mahvi@gst.dk, halpe@gst.dk) # Who to mail if I need human help
+% email_log = (mahvi@gst.dk, halpe@gst.dk) # if empty, don't send log file by email
 
 
 # Next line shows a rule line structure

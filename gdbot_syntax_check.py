@@ -6,7 +6,7 @@ def note_error(strE):
 def check_compiler(strC):
     lstErrors = list()
     lstC = strC[1:].strip().split("=")
-    lstKnownCompilers = ["file_title","file_type","gdbot_syntax_version","log_file","send_log_file","email_address"]
+    lstKnownCompilers = ["file_title","gdbot_syntax_version","log_file","log_email"]
     if lstC[0].strip() in lstKnownCompilers:
         # gdbot version
         if lstC[0].strip() == "gdbot_syntax_version":
@@ -16,12 +16,12 @@ def check_compiler(strC):
         if lstC[0].strip() == "log_file":
             if len(lstC[1].strip().replace('.','')) < 1:
                 lstErrors.append("Bad compiler. Short logfile name: "+lstC[1].strip())
-        # send log
-        if lstC[0].strip() == "send_log_file":
-            if lstC[1].strip().lower() not in ("true","false"):
-                lstErrors.append("Bad compiler. Invalid send_log_boolean: "+lstC[1].strip())
+#         # send log
+#         if lstC[0].strip() == "send_log_file":
+#             if lstC[1].strip().lower() not in ("true","false"):
+#                 lstErrors.append("Bad compiler. Invalid send_log_boolean: "+lstC[1].strip())
         # email address
-        if lstC[0].strip() == "email_address":
+        if lstC[0].strip() == "log_email":
             if not "@" in lstC[1]:
                 lstErrors.append("Bad compiler.  No valid email address: "+lstC[1].strip())
     else:
@@ -81,6 +81,7 @@ def syntax_check(lstLines):
 if __name__ == "__main__":
 
     if len(sys.argv) >= 1:
+        print "Checking file(s)..."
         for fil in sys.argv[1:]: # Don't check the .py itself...
             print " Syntax check : ",fil
             # Open file
