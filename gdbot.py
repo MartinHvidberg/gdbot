@@ -10,13 +10,20 @@
     
     To do:
     
-        - Work with NIS, not just with .gdb
+        - Find out if we want to use versioning
+        
+        - Error handling:
+          - catch failing updates and back out without posting
+          - detect problems with connection setup etc.
         
         - Figure out why we can't have double quotes in condition input. Fix it, convert them, or detect and issue a warning
         
+        - Polish log output format
+
 """
 import os
 from datetime import datetime # for datetime.now()
+import arcpy
 
 import utils
 import rule_parser
@@ -72,22 +79,27 @@ def main(db, rulefile, logfile):
     
     # Read the .gdbot file and build the list of bot-rules
     lstRules = rule_parser.ReadRules(rulefile)
+    print lstRules
     
-    data_checker.CheckData(db, lstRules)    
+    data_checker.CheckData(db, lstRules)
+    
     # Finish off logfiles, etc. and clean up nicely...
     
     return 0
     
     
 if __name__ == "__main__":
-    RunGdbTests()
+    #RunGdbTests()
 
-    db = "M:\HAL\TeamNIS\Tools\SDE_connections\Yellow_Test\yellow_nis@NIS_EDITOR.sde"
+    rules = "ruletest.gdbot"
+    #db = "M:\HAL\TeamNIS\Tools\SDE_connections\Yellow_Test\yellow_nis@NIS_EDITOR.sde"
+#     db = "M:/HAL/TeamNIS/Tools/SDE_connections/Yellow_Test/yellow_nis@NIS_EDITOR.sde"
     #db = "M:\HAL\TeamNIS\Tools\SDE_connections\green2_nis@nis_editor.sde"
     #db = "Database Connections\green2_nis@nis_editor.sde"
     #db = "C:\Martin\Work_Eclipse\BuildGreen\data\input.gdb"
-    db = "./input.gdb"
-    #main(db, rules, "log.txt")
+    db = "./test.gdb"
+
+    main(db, rules, "log.txt")
 
 else:
     print "Non-recognized caller: "+__name__
