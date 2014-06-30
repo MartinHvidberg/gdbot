@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     rules = "ruletest.gdbot"
     #db = "M:\HAL\TeamNIS\Tools\SDE_connections\Yellow_Test\yellow_nis@NIS_EDITOR.sde"
-#     db = "M:/HAL/TeamNIS/Tools/SDE_connections/Yellow_Test/yellow_nis@NIS_EDITOR.sde"
+    #db = "M:/HAL/TeamNIS/Tools/SDE_connections/Yellow_Test/yellow_nis@NIS_EDITOR.sde"
     #db = "M:\HAL\TeamNIS\Tools\SDE_connections\green2_nis@nis_editor.sde"
     #db = "Database Connections\green2_nis@nis_editor.sde"
     #db = "C:\Martin\Work_Eclipse\BuildGreen\data\input.gdb"
