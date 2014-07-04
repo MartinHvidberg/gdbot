@@ -80,7 +80,7 @@ def FinishUpDB(db, edit):
     # Disconnect from db
     # TODO???
     
-    return
+    return 0
 
 
 def CheckData(dataset, rules):
@@ -92,10 +92,11 @@ def CheckData(dataset, rules):
     print "   < CheckData() >"
     
     # Set up database connection and edit session
-    db_str, db_editSess = SetUpDB(dataset)
-    if not db_str:
+    try:
+        db_str, db_editSess = SetUpDB(dataset)
+    except:
         print "Problem connecting to database, quitting"
-        return
+        return 102
     
     # *** Walk the db, and use the rules on it - This is the big enchilada
     CheckTables(db_str, rules)
@@ -117,7 +118,8 @@ def CheckTables(dataset, rules):
     
     for rule in rules:
         if(rule.dofix): # FIX
-            # v. 0.1: print "UPDATE " + str(rule.fclist) + " SET " + rule.field + " = " + rule.fixvalue + " WHERE " + rule.GetWhereString()
+            # v. 0.1: 
+            print "UPDATE " + str(rule.fclist) + " SET " + rule.field + " = " + rule.fixvalue + " WHERE " + rule.GetWhereString()
             for fc in rule.fclist:
                 count = 0
                 fields = ["OBJECTID", "LNAM"] # fields to get from the db, update log writing below if this changes

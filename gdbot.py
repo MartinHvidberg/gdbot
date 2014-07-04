@@ -29,6 +29,10 @@ import utils
 import rule_parser
 import data_checker # comment this out to avoid importing arcpy
 
+# for callgraph only
+from pycallgraph import PyCallGraph
+from pycallgraph.output import GraphvizOutput
+
 
 def RunGdbTests():
     """Test on a file gdb to verify syntax and rule validity."""
@@ -79,16 +83,20 @@ def main(db, rulefile, logfile):
     
     # Read the .gdbot file and build the list of bot-rules
     lstRules = rule_parser.ReadRules(rulefile)
-    print lstRules
+    if isinstance(lstRules, int): # if function returns a number, it's an error code...
+        print "Error returned..."
+        return lstRules
+    else:
+        print "   number of rules: "+str(len(lstRules))
+        data_checker.CheckData(db, lstRules)
     
-    data_checker.CheckData(db, lstRules)
-    
-    # Finish off logfiles, etc. and clean up nicely...
+        # Finish off logfiles, etc. and clean up nicely...
     
     return 0
     
     
 if __name__ == "__main__":
+       
     #RunGdbTests()
 
     rules = "ruletest.gdbot"
@@ -99,7 +107,12 @@ if __name__ == "__main__":
     #db = "C:\Martin\Work_Eclipse\BuildGreen\data\input.gdb"
     db = "./test.gdb"
 
-    main(db, rules, "log.txt")
+    try:
+        with PyCallGraph(output=GraphvizOutput()):
+            print " *** Running in pycallgraph *** "
+            main(db, rules, "log.txt")
+    except:
+        main(db, rules, "log.txt")
 
 else:
     print "Non-recognized caller: "+__name__

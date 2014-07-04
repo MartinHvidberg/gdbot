@@ -128,7 +128,12 @@ def CleanUpFixString(fixvalue):
 def ReadRules(path):
     """Read rules from a file, and return a list of Rule objects"""
     lst_rules = list()
-    f = open(path, 'r')
+    try:
+        f = open(path, 'r')
+    except IOError, e:
+        print e.errno
+        print e 
+        return 101
     for line in f:
         if(not line.strip() or line[0]=="#"):
             continue
