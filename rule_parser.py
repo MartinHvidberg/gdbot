@@ -58,10 +58,19 @@ class Rule:
                 self.fcsubtype = GetFCSids(fcsubtype, self.fclist[0])
         # Condition
         self.condition = replace(condition, "!=", "<>")
+        if ('"' in self.condition): # double quotes won't work
+            if(not "'" in self.condition):
+                self.condition = replace(self.condition, '"', "'")
+                utils.log("Warning, rule {}: Can't have \"double quotes\" in condition, using 'single quotes' instead.".format(self.id))
+            else:
+                print "Error, rule {}: There are both \"double quotes\" and 'single quotes' in condition - this will fail.".format(self.id)
+                utils.log("Error, rule {}: There are both \"double quotes\" and 'single quotes' in condition - this will fail.".format(self.id))
         # Fix or Log - self.dofix is a bool
         self.dofix = (fixorlog=="FIX")
         self.fixLst = []
-        # Fix value (new value for main field) - self.fixLst is a list of pairs (lists)
+        # Fix value
+        # - for FIXes, self.fixLst is a list of pairs of fixes, e.g. PLTS_COMP_SCALE=90000,IS_CONFLATE=TRUE
+        # - for LOGs, self.fixLst is a list of field names to include in log output
         if self.dofix:
             if fixvalue: # there's probably a cleaner way of doing this looping and cleaning...
                 # TODO: recognize a fixvalue which is another column name
@@ -75,8 +84,8 @@ class Rule:
                 self.dofix = False
                 utils.log("Warning, rule {}: FIX with no repair values; treating as LOG.".format(str(self.id)))
                  # if the user didn't supply a fix value, this is more helpful than throwing an error
-        elif fixvalue:
-                utils.log("Warning, rule {}: FIX is not set, but repair value is non-empty.".format(str(self.id)))
+        elif fixvalue: # list of fields to report on
+                self.fixLst = [val.strip() for val in fixvalue.split(',')] # split by comma and strip whitespace
     def GetWhereString(self):
         """Return a string with the WHERE clause for the rule, includes: condition and fcsubtype."""
         where = self.condition
@@ -129,39 +138,37 @@ def ReadRules(path):
     """Read rules from a file, and return a list of Rule objects"""
     lst_rules = list()
     try:
-        f = open(path, 'r')
+        with open(path, 'r') as f:
+            for line in f:
+                if(not line.strip() or line[0]=="#"):
+                    continue
+                if(line[0]=="%"):
+                    utils.log("ignoring % lines, not implemented yet")
+                    continue
+                if(line[0]!=":"):
+                    utils.log("Warning: ignoring invalid line starting with "+line[0]+" ("+line+")")
+                    continue
+                if("#" in line):
+                    line = line.split("#")[0].strip()
+                items = line.split(":")
+                if len(items)!=10:
+                   utils.log("Warning: Line does not contain the correct number of elements... \n\t"+line.strip()+"\n\t"+repr(items))
+                # forget about number 0, since it's always an empty string (nothing in front of the first ':')
+                # number 9 is just comments
+                ruleid = items[1].strip()
+                title = items[2].strip()
+                mode = items[3].strip()
+                featureclass = items[4].strip()
+                fcsubtype = items[5].strip()
+                condition = items[6].strip()
+                fixorlog = items[7].strip()
+                fixvalue = items[8].strip()
+                r = Rule(ruleid, title, mode, featureclass, fcsubtype, condition, fixorlog, fixvalue)
+                if r.id != -1:
+                    lst_rules.append(r)
+            print "Done reading rules."
     except IOError, e:
         print e.errno
         print e 
         return 101
-    for line in f:
-        if(not line.strip() or line[0]=="#"):
-            continue
-        if(line[0]=="%"):
-            utils.log("ignoring % lines, not implemented yet")
-            continue
-        if(line[0]!=":"):
-            utils.log("Warning: ignoring invalid line starting with "+line[0]+" ("+line+")")
-            continue
-        if("#" in line):
-            line = line.split("#")[0].strip()
-        items = line.split(":") 
-        if len(items)!=10:
-           utils.log("Warning: Line does not contain the correct number of elements... \n\t"+line.strip()+"\n\t"+repr(items))
-        # forget about number 0, since it's always an empty string (nothing in front of the first ':')
-        # number 9 is just comments
-        ruleid = items[1].strip()
-        title = items[2].strip()
-        mode = items[3].strip()
-        featureclass = items[4].strip()
-        fcsubtype = items[5].strip()
-        condition = items[6].strip()
-        fixorlog = items[7].strip()
-        fixvalue = items[8].strip()
-        r = Rule(ruleid, title, mode, featureclass, fcsubtype, condition, fixorlog, fixvalue)
-        if r.id != -1:
-            lst_rules.append(r)
-    f.close()
-    print "Done reading rules."
     return lst_rules
-

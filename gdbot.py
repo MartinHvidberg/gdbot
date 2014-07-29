@@ -6,19 +6,20 @@
     Author: Martin Hvidberg <mahvi@gst.dk>
     Author: Hanne L. Petersen <halpe@gst.dk>
     
-    Ver. 0.2
+    # Ver. 0.2: Fundamental changes to rule input format
+    # Ver. 0.3: allowing FIX action to include a list of fields to report
     
     To do:
     
-        - Find out if we want to use versioning
+        - Find out if we want to use versioning - changes still arrive in products without versions
         
         - Error handling:
-          - catch failing updates and back out without posting
+          - catch failing updates and back out without posting - that should be what 'with' does already
           - detect problems with connection setup etc.
         
-        - Figure out why we can't have double quotes in condition input. Fix it, convert them, or detect and issue a warning
-        
         - Polish log output format
+
+        - Consider a MAIL action option, that will (log and) email the last editor
 
 """
 import os
@@ -30,8 +31,8 @@ import rule_parser
 import data_checker # comment this out to avoid importing arcpy
 
 # for callgraph only
-from pycallgraph import PyCallGraph
-from pycallgraph.output import GraphvizOutput
+#from pycallgraph import PyCallGraph
+#from pycallgraph.output import GraphvizOutput
 
 
 def RunGdbTests():
@@ -81,38 +82,53 @@ def RunGdbTests():
 
 def main(db, rulefile, logfile):
     
+    timStart = datetime.now()
     # Read the .gdbot file and build the list of bot-rules
     lstRules = rule_parser.ReadRules(rulefile)
-    if isinstance(lstRules, int): # if function returns a number, it's an error code...
-        print "Error returned..."
+    #print lstRules
+    
+    if isinstance(lstRules, int): # if ReadRules returned a number, it's an error code...
+        print "ReadRules returned an error..."
         return lstRules
-    else:
-        print "   number of rules: "+str(len(lstRules))
-        data_checker.CheckData(db, lstRules)
+
+    print "Number of rules: "+str(len(lstRules))
     
-        # Finish off logfiles, etc. and clean up nicely...
+    data_checker.CheckData(db, lstRules)
+
+    # Finish off logfiles, etc. and clean up nicely...
+    utils.writeLogToFile('log.txt')
     
+    timEnd = datetime.now()
+    durRun = timEnd - timStart
+    print "\n  Total " + __file__ + " duration (h:mm:ss.d): " + str(durRun)[:-3]
+
     return 0
     
     
 if __name__ == "__main__":
-       
+
     #RunGdbTests()
 
-    rules = "ruletest.gdbot"
-    #db = "M:\HAL\TeamNIS\Tools\SDE_connections\Yellow_Test\yellow_nis@NIS_EDITOR.sde"
-    #db = "M:/HAL/TeamNIS/Tools/SDE_connections/Yellow_Test/yellow_nis@NIS_EDITOR.sde"
-    #db = "M:\HAL\TeamNIS\Tools\SDE_connections\green2_nis@nis_editor.sde"
-    #db = "Database Connections\green2_nis@nis_editor.sde"
+    #rules = "ruletest.gdbot"
+    #rules = "test.gdbot"
+    #rules = "M:/HAL/TeamNIS/Tools/PythonStuff/gdbot/rule_generators/nulls.gdbot"
+    rules = "M:/HAL/TeamNIS/Tools/PythonStuff/gdbot/gst_rules/S5758.gdbot"
+    
+    db = "M:/HAL/TeamNIS/Tools/SDE_connections/Yellow3/nis_editor@yellow3.sde"
+    #db = "M:/HAL/TeamNIS/Tools/SDE_connections/nis_editor@green3.sde"
     #db = "C:\Martin\Work_Eclipse\BuildGreen\data\input.gdb"
-    db = "./test.gdb"
+#     db = "./test.gdb"
 
-    try:
-        with PyCallGraph(output=GraphvizOutput()):
-            print " *** Running in pycallgraph *** "
-            main(db, rules, "log.txt")
-    except:
-        main(db, rules, "log.txt")
+    logfile = "log.txt"
+
+    #try:
+    #    with PyCallGraph(output=GraphvizOutput()):
+    #        print " *** Running in pycallgraph *** "
+    #        main(db, rules, logfile)
+    #except: # TODO: only catch pycallgraph errors
+    #    main(db, rules, logfile)
+    
+    main(db, rules, logfile)
 
 else:
     print "Non-recognized caller: "+__name__

@@ -3,6 +3,8 @@ import os
 
 import utils
 
+TEST_RULES_ONLY = True
+
 def SetUpDB(db):
     """Connect to database with .sde connection, and prepare a version for editing."""
 
@@ -14,14 +16,15 @@ def SetUpDB(db):
     descDB = arcpy.Describe(db)
     if descDB.workspaceFactoryProgID == "esriDataSourcesGDB.SdeWorkspaceFactory.1":
         connType = 1
-        print "It's an SDE geodatabase"
+        print "     It's an SDE geodatabase"
         pass
     elif descDB.workspaceFactoryProgID != "esriDataSourcesGDB.FileGDBWorkspaceFactory.1":
         print "Unexpected data format. Should be .sde or .gdb."
         return
     
+    # We don't need to use an edit version, changes will still be recognised when the products do Get Changes.
+    # NIS_MODIFIED etc. will be left unchanged
     # Create a version and change to it
-    # TODO?
 #     try:
 #         #dbVersion = arcpy.CreateVersion_management (db, "NIS.DEFAULT", "kill999", "PROTECTED")
 #         print "Check..."#, dbVersion
@@ -54,7 +57,7 @@ def SetUpDB(db):
         db += "/NIS.Nautical/NIS."
     else:
         db += "/Nautical/"
-    print "sde db = {}".format(db)
+#     print "db = {}".format(db)
     
     return [db, edit]
 
@@ -115,11 +118,14 @@ def CheckTables(dataset, rules):
     # don't use double quotes in condition input, use single quotes!!!
 
     print "   < CheckTables() >"
+    totalFixes = 0
+    totalLogs = 0
     
     for rule in rules:
+        print rule.id;
         if(rule.dofix): # FIX
-            # v. 0.1: 
-            print "UPDATE " + str(rule.fclist) + " SET " + rule.field + " = " + rule.fixvalue + " WHERE " + rule.GetWhereString()
+            # v. 0.1:
+            # print "UPDATE " + str(rule.fclist) + " SET " + rule.field + " = " + rule.fixvalue + " WHERE " + rule.GetWhereString()
             for fc in rule.fclist:
                 count = 0
                 fields = ["OBJECTID", "LNAM"] # fields to get from the db, update log writing below if this changes
@@ -132,26 +138,34 @@ def CheckTables(dataset, rules):
                         logStr = "Rule {} ({}): updating " .format(rule.id, rule.title)
                         i = defaultFieldsNum
                         for i in range(len(rule.fixLst)): # do each of the fixes
-                            logStr += "{} = {} (was {}), ".format(rule.fixLst[i][0], rule.fixLst[i][1], row[defaultFieldsNum+i])
+                            logStr += "{} = {} (was {}), ".format(rule.fixLst[i][0], rule.fixLst[i][1], utils.encodeIfUnicode(row[defaultFieldsNum+i]))
                             fixVal = rule.fixLst[i][1] # set the update value
                             row[defaultFieldsNum+i] = fixVal
                             i += 1
                         logStr = logStr[0:-2] + " for OBJECTID = {} in {}".format(row[0], fc)
                         utils.log(logStr)
-                        uc.updateRow(row) # do the actual update
+                        if not TEST_RULES_ONLY:
+                            uc.updateRow(row) # do the actual update
                         pass
-                utils.log("Total {} fix hits for rule {}".format(count, rule.id))
+                utils.log("Total {} fix hits for rule {} ({})".format(count, rule.id, fc))
+                totalFixes += count
         else: # LOG
-            # v. 0.1: print "SELECT FROM " + str(rule.fclist) + " WHERE " + rule.GetWhereString()
+            # v. 0.1:
+            # print "SELECT FROM " + str(rule.fclist) + " WHERE " + rule.GetWhereString()
             for fc in rule.fclist:
                 count = 0
-                fields = ["OBJECTID", "LNAM"] # fields to get from the db, update log writing below if this changes
+                fields = ["OBJECTID", "LNAM"] + rule.fixLst # fields to get from the db, update log writing and reportValues below if this changes
                 with arcpy.da.SearchCursor(dataset+fc, fields, where_clause=rule.GetWhereString()) as sc:
                     for row in sc:
                         count += 1
-                        utils.log("Found rule {} ({}) violation for OBJECTID={} in {}"
-                            .format(rule.id, rule.title, row[0], fc))
-                        # TODO: Nice to have: include the current value of the field(s) - can we parse the requested field names out of the condition string
-                utils.log("Total {} search hits for rule {}".format(count, rule.id))
-    utils.log("Done checking tables.")
+                        reportValues = ''
+                        if(rule.fixLst):
+                            for i,field in enumerate(rule.fixLst):
+                                reportValues += ', '+field+"="+utils.encodeIfUnicode(row[i+2])
+                            reportValues = ' (' + reportValues[2:] + ')'
+                        utils.log("Found rule {} ({}) violation for OBJECTID={} in {}{}"
+                            .format(rule.id, rule.title, row[0], fc, reportValues))
+                utils.log("Total {} search hits for rule {} ({})".format(count, rule.id, fc))
+                totalLogs += count
+    utils.log("Done checking tables, total {} log hits and {} fixes.".format(totalLogs, totalFixes))
 
