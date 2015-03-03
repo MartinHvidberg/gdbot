@@ -18,7 +18,8 @@ The bold answer is, because gdbot is simpler, faster and better.
 
 We like Data Reviewer (D.R.), and use it frequently, but in some cases we find that gdbot better suites our needs.
 
-gdbot have three advantages over Data Reviewer.
+gdbot have three advantages over Data Reviewer
+==============================================
 
 Simpler: Creating a new rule in gdbot is literally as easy as writing on line of text in a file. That is easier than going through the D.R. GUI. In particular if you have hundreds of rules that you want to create. We have occasionally made Python scripts that generate large number of rules from various input, e.g. a spreadsheet. This allows us to quickly and easily check our data for a large number of error-types, with an ease we could never get with D.R.
 
