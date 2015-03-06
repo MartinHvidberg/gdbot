@@ -433,7 +433,7 @@ def ListofFCSsInFC(FC,lstKeywords):
 
 def ListofFCsWithFCS(strFCS):
     """ Return a list of FC names, showing all FC's that have the specified FCsubtype.
-    if strFCS is an interger is considered a FCsubtype number, otherwise an S-57 abbreviation.
+    If strFCS is an integer it's considered a FCsubtype number, otherwise an S-57 abbreviation.
     Returns list of FC filenames"""
     lstR = []
     if CleanFCSstring(strFCS) == "-1": # it's a S57ABB
